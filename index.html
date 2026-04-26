@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>地瓜大進擊</title>
+<title>Malayan Night-Heron Invasion</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden;font-family:Arial,sans-serif}
@@ -1033,10 +1033,10 @@ const G={
     ctx.fillStyle='#06060f';ctx.fillRect(0,0,GW,GH);
     // glow title
     ctx.save();ctx.shadowColor='#FF4500';ctx.shadowBlur=36;
-    ctx.fillStyle='#FF4500';ctx.font='bold 52px Arial';ctx.textAlign='center';
-    ctx.fillText('地瓜大進擊',GW/2,170);ctx.restore();
-    ctx.fillStyle='#FFD700';ctx.font='bold 22px Arial';ctx.textAlign='center';
-    ctx.fillText('Sweet Potato Invasion',GW/2,207);
+    ctx.fillStyle='#FF4500';ctx.font='bold 36px Arial';ctx.textAlign='center';
+    ctx.fillText('Malayan Night-Heron Invasion',GW/2,170);ctx.restore();
+    ctx.fillStyle='#FFD700';ctx.font='bold 18px Arial';ctx.textAlign='center';
+    ctx.fillText('黑冠麻鷺大進擊',GW/2,207);
     // animated bird
     const t=Date.now()/1000;
     this._titleBird(GW/2,330+Math.sin(t)*10,t);
@@ -1057,7 +1057,7 @@ const G={
     ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='13px Arial';ctx.textAlign='center';
     ctx.fillText(`已有 ${tp} 人次遊玩`,GW/2,GH-32);
     ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font='11px Arial';
-    ctx.fillText('地瓜大進擊 v1.0',GW/2,GH-12);
+    ctx.fillText('Malayan Night-Heron Invasion v1.0',GW/2,GH-12);
   },
 
   _titleBird(x,y,t){
