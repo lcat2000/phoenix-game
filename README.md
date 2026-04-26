@@ -67,25 +67,29 @@ Three phases:
 2. **Wing Phase** — Each wing is an independent target; left wing drops ⭐, right wing drops 💊
 3. **Berserk Phase** — Faster movement, 8-way bullet spread, red glow
 
+Defeating the boss triggers a **victory screen** with rainbow animation before the score submission.
+
 ---
 
 ## Leaderboard
 
-- Top 10 scores saved locally via `localStorage`
+- Global Top 10 stored on **Upstash Redis** (Vercel KV)
 - Enter your name (up to 6 characters) after each run
 - Fields: Name · Score · Wave reached · Date
 - Total play count displayed on title screen and leaderboard
+- Falls back to `localStorage` if the server is unreachable
 
 ---
 
 ## Tech
 
-- Single HTML file — no build step, no dependencies
+- Single HTML file frontend — no build step, no client-side dependencies
 - Canvas 2D rendering at 560×800 logical resolution, mobile-adaptive scaling
 - Procedural BGM and SFX via **Web Audio API** (no audio files)
   - Title / Game / Boss BGM loops
   - Sound effects: shoot, explosion, hit, power-up, shield, wave clear, game over
-- `localStorage` for leaderboard and play count persistence
+- **Upstash Redis** (via Vercel KV) for global leaderboard and play count
+- `localStorage` fallback when offline
 
 ---
 
