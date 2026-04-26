@@ -1154,7 +1154,7 @@ const G={
     ctx.fillText(`已有 ${totalPlays} 人次遊玩`,GW/2,72);
     const sc=getLB();
     if(!sc.length){
-      ctx.fillStyle='#888';ctx.font='20px Arial';ctx.textAlign='center';ctx.fillText('尚無記錄',GW/2,200);
+      ctx.fillStyle='#888';ctx.font='20px Arial';ctx.textAlign='center';ctx.fillText(lbLoading?'載入中…':'尚無記錄',GW/2,200);
     }else{
       const cx=[28,88,210,338,424];
       ctx.fillStyle='#666';ctx.font='13px Arial';ctx.textAlign='left';
@@ -1216,7 +1216,7 @@ canvas.addEventListener('touchstart',e=>{
   const gx=(t.clientX-OX)/scale, gy=(t.clientY-OY)/scale;
   if(G.st===ST.TITLE){
     initAC();
-    if(gy>550&&gy<600&&gx>GW/2-82&&gx<GW/2+82){playBGM('title');G.st=ST.LB;return}
+    if(gy>550&&gy<600&&gx>GW/2-82&&gx<GW/2+82){playBGM('title');refreshLB();G.st=ST.LB;return}
     G.init();return;
   }
   if(G.st===ST.LB){
@@ -1244,25 +1244,53 @@ canvas.addEventListener('click',e=>{
   const gx=(e.clientX-OX)/scale, gy=(e.clientY-OY)/scale;
   if(G.st===ST.TITLE){
     initAC();
-    if(gy>550&&gy<600&&gx>GW/2-82&&gx<GW/2+82){playBGM('title');G.st=ST.LB;return}
+    if(gy>550&&gy<600&&gx>GW/2-82&&gx<GW/2+82){playBGM('title');refreshLB();G.st=ST.LB;return}
     G.init();
   }else if(G.st===ST.LB){
     if(gy>GH-60&&gy<GH-28) G.st=ST.TITLE;
   }
 });
 
-// ── Leaderboard ───────────────────────────────────────────────
-function getLB(){try{return JSON.parse(localStorage.getItem('ph_scores')||'[]')}catch{return[]}}
-function getTotalPlays(){try{return parseInt(localStorage.getItem('ph_plays')||'0')}catch{return 0}}
+// ── Leaderboard (Vercel KV) ───────────────────────────────────
+let lbCache=[], playsCache=0, lbLoading=false;
 
-function saveScore(name,score,wave){
-  const s=getLB();
+async function refreshLB(){
+  lbLoading=true;
+  try{
+    const r=await fetch('/api/leaderboard');
+    const data=await r.json();
+    lbCache=data.scores||[];
+    playsCache=data.plays||0;
+  }catch(e){
+    lbCache=JSON.parse(localStorage.getItem('ph_scores')||'[]');
+    playsCache=parseInt(localStorage.getItem('ph_plays')||'0');
+  }
+  lbLoading=false;
+}
+
+function getLB(){return lbCache}
+function getTotalPlays(){return playsCache}
+
+async function saveScore(name,score,wave){
   const d=new Date();
-  s.push({name,score,wave,date:`${d.getMonth()+1}/${d.getDate()}`});
-  s.sort((a,b)=>b.score-a.score);s.splice(10);
-  localStorage.setItem('ph_scores',JSON.stringify(s));
-  localStorage.setItem('ph_plays',getTotalPlays()+1);
-  return s.findIndex(x=>x.name===name&&x.score===score)+1;
+  const entry={name,score,wave,date:`${d.getMonth()+1}/${d.getDate()}`};
+  try{
+    const r=await fetch('/api/leaderboard',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(entry)
+    });
+    const data=await r.json();
+    await refreshLB();
+    return data.rank||lbCache.findIndex(x=>x.name===name&&x.score===score)+1;
+  }catch(e){
+    const s=JSON.parse(localStorage.getItem('ph_scores')||'[]');
+    s.push(entry);s.sort((a,b)=>b.score-a.score);s.splice(10);
+    localStorage.setItem('ph_scores',JSON.stringify(s));
+    localStorage.setItem('ph_plays',parseInt(localStorage.getItem('ph_plays')||'0')+1);
+    lbCache=s;playsCache=parseInt(localStorage.getItem('ph_plays')||'0');
+    return s.findIndex(x=>x.name===name&&x.score===score)+1;
+  }
 }
 
 function showNameInput(){
@@ -1271,14 +1299,16 @@ function showNameInput(){
   setTimeout(()=>document.getElementById('pname').focus(),50);
 }
 
-function submitScore(){
+async function submitScore(){
   const n=(document.getElementById('pname').value.trim()||'匿名').slice(0,6);
   document.getElementById('ni').style.display='none';
-  const rank=saveScore(n,G.finalScore,G.finalWave);
+  const rank=await saveScore(n,G.finalScore,G.finalWave);
   G.rankAch=rank;G.rankName=n;
   setTimeout(()=>{G.st=ST.LB},1400);
 }
 document.getElementById('pname').addEventListener('keydown',e=>{if(e.key==='Enter')submitScore()});
+
+refreshLB();
 
 // ── Loop ──────────────────────────────────────────────────────
 let last=0,acc=0;const TICK=1000/60;
