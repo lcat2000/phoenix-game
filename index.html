@@ -1053,7 +1053,10 @@ const G={
     rr(GW/2-82,556,164,38,9);ctx.fill();ctx.stroke();
     ctx.fillStyle='#FFD700';ctx.font='18px Arial';ctx.textAlign='center';
     ctx.fillText('排行榜 🏆',GW/2,581);
-    ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='11px Arial';
+    const tp=getTotalPlays();
+    ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='13px Arial';ctx.textAlign='center';
+    ctx.fillText(`已有 ${tp} 人次遊玩`,GW/2,GH-32);
+    ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font='11px Arial';
     ctx.fillText('PHOENIX v1.0 – 火鳥傳說',GW/2,GH-12);
   },
 
@@ -1078,6 +1081,9 @@ const G={
     ctx.fillStyle='#06060f';ctx.fillRect(0,0,GW,GH);
     ctx.fillStyle='#FFD700';ctx.font='bold 30px Arial';ctx.textAlign='center';
     ctx.fillText('🏆 排行榜 TOP 10',GW/2,50);
+    const totalPlays=getTotalPlays();
+    ctx.fillStyle='rgba(255,255,255,0.55)';ctx.font='14px Arial';ctx.textAlign='center';
+    ctx.fillText(`已有 ${totalPlays} 人次遊玩`,GW/2,72);
     const sc=getLB();
     if(!sc.length){
       ctx.fillStyle='#888';ctx.font='20px Arial';ctx.textAlign='center';ctx.fillText('尚無記錄',GW/2,200);
@@ -1179,6 +1185,7 @@ canvas.addEventListener('click',e=>{
 
 // ── Leaderboard ───────────────────────────────────────────────
 function getLB(){try{return JSON.parse(localStorage.getItem('ph_scores')||'[]')}catch{return[]}}
+function getTotalPlays(){try{return parseInt(localStorage.getItem('ph_plays')||'0')}catch{return 0}}
 
 function saveScore(name,score,wave){
   const s=getLB();
@@ -1186,6 +1193,7 @@ function saveScore(name,score,wave){
   s.push({name,score,wave,date:`${d.getMonth()+1}/${d.getDate()}`});
   s.sort((a,b)=>b.score-a.score);s.splice(10);
   localStorage.setItem('ph_scores',JSON.stringify(s));
+  localStorage.setItem('ph_plays',getTotalPlays()+1);
   return s.findIndex(x=>x.name===name&&x.score===score)+1;
 }
 
