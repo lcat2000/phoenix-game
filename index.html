@@ -726,7 +726,7 @@ class Item{
 }
 
 // ── Game state ────────────────────────────────────────────────
-const ST={TITLE:0,PLAY:1,OVER:2,LB:3};
+const ST={TITLE:0,PLAY:1,OVER:2,LB:3,WIN:4};
 const G={
   st:ST.TITLE,
   score:0,wave:1,lives:LIVES_START,
@@ -802,7 +802,8 @@ const G={
   _win(){
     this.finalScore=this.score;this.finalWave=this.wave;
     stopBGM();sfxWaveClear();
-    this.st=ST.OVER;showNameInput();
+    this.st=ST.WIN;
+    setTimeout(()=>showNameInput(),2800);
   },
 
   tick(){
@@ -976,6 +977,7 @@ const G={
 
     if(this.st===ST.PLAY) this._drawHUD();
     if(this.st===ST.OVER) this._drawOver();
+    if(this.st===ST.WIN)  this._drawWin();
   },
 
   _drawHUD(){
@@ -1027,6 +1029,36 @@ const G={
     ctx.fillStyle='#FFD700';ctx.font='bold 26px Arial';ctx.textAlign='center';
     ctx.fillText('得分: '+this.finalScore.toLocaleString(),GW/2,332);
     ctx.fillText('到達 Wave '+this.finalWave,GW/2,368);
+  },
+
+  _drawWin(){
+    const t=Date.now()/1000;
+    ctx.fillStyle='rgba(0,0,0,0.82)';ctx.fillRect(0,0,GW,GH);
+    // rainbow shimmer on title
+    const hue=(t*60)%360;
+    ctx.save();
+    ctx.shadowColor=`hsl(${hue},100%,60%)`;ctx.shadowBlur=40;
+    ctx.fillStyle=`hsl(${hue},100%,70%)`;ctx.font='bold 52px Arial';ctx.textAlign='center';
+    ctx.fillText('恭喜通關！',GW/2,240);ctx.restore();
+    // subtitle
+    ctx.save();ctx.shadowColor='#FFD700';ctx.shadowBlur=16;
+    ctx.fillStyle='#FFD700';ctx.font='bold 22px Arial';ctx.textAlign='center';
+    ctx.fillText('🏆 Wave 10 全部清除！',GW/2,292);ctx.restore();
+    // score
+    ctx.fillStyle='#fff';ctx.font='bold 26px Arial';ctx.textAlign='center';
+    ctx.fillText('最終得分: '+this.finalScore.toLocaleString(),GW/2,352);
+    // blinking prompt
+    if(Math.floor(t*1.8)%2===0){
+      ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='16px Arial';ctx.textAlign='center';
+      ctx.fillText('請稍候輸入名字…',GW/2,410);
+    }
+    // sparkles
+    for(let i=0;i<8;i++){
+      const a=t*1.2+i*Math.PI/4, r=110+Math.sin(t*2+i)*18;
+      const sx=GW/2+Math.cos(a)*r, sy=270+Math.sin(a)*r*0.4;
+      ctx.fillStyle=`hsl(${(hue+i*45)%360},100%,70%)`;
+      ctx.beginPath();ctx.arc(sx,sy,3+Math.sin(t*3+i)*1.5,0,Math.PI*2);ctx.fill();
+    }
   },
 
   _drawTitle(){
